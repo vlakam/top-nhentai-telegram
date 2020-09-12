@@ -5,24 +5,27 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "index.js",
-            "program": "${workspaceFolder}/index.js",
-            "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "type": "pwa-node"
-        },
-        {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch Bot",
             "runtimeArgs": [
                 "-r",
                 "ts-node/register"
             ],
             "args": [
-                "${workspaceFolder}/nhentai.ts"
+                "${workspaceFolder}/src/index.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Dummy Run",
+            "runtimeArgs": [
+                "-r",
+                "ts-node/register"
+            ],
+            "args": [
+                "${workspaceFolder}/src/test.ts"
             ]
         }
     ]
