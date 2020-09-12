@@ -19,6 +19,7 @@ const start = async () => {
     const uploader = new Uploader();
     const publisher = new Publisher();
 
+    await grabber.process();
     await uploader.init();
 
     scheduleJob('*/15 * * * *', uploader.process.bind(uploader));

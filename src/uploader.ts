@@ -80,7 +80,7 @@ export default class Uploader {
     }
 
     async process() {
-        console.log('shit, time to upload shit to telegraph and get my ass banned');
+        console.log('galleries, time to upload galleries to telegraph and get my ass banned');
         const queue = await GalleryPageModel.find({});
         for (const gallery of queue) {
             try {
@@ -123,7 +123,7 @@ export default class Uploader {
                 await uploadedGallery.save();
                 await GalleryPageModel.findByIdAndDelete(gallery.id);
                 console.log(`Uploaded ${gallery.id}:${gallery.title} to telegraph - OK`);
-                
+
                 break;
             } catch (e) {
                 console.error(`Failed to upload gallery: ${gallery.title} - ${e.toString()}`);

@@ -6,7 +6,7 @@ export default class Grabber {
     constructor() {}
 
     async process() {
-        console.log('shit, time to grab some shit!');
+        console.log('galleries, time to grab some galleries!');
         const homePage = await NH.getHomepage();
         if (!homePage.popular) {
             console.log('No populars this time ;(');

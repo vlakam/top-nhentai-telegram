@@ -21,11 +21,10 @@ export class Publisher {
     constructor() {}
 
     async process() {
-        console.log('Time to post shit');
+        console.log('Time to post galleries');
         const channels = await ChannelModel.find({ posting: true });
         for (const channel of channels) {
             await this.processChannel(channel);
-            debugger;
         }
     }
 
