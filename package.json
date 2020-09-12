@@ -4,7 +4,8 @@
   "description": "Telegram bot for scrabbling top nhentai galleries",
   "main": "src/index.ts",
   "scripts": {
-    "test": "none"
+    "build": "tsc ",
+    "start": "node ./dist/index.js"
   },
   "repository": {
     "type": "git",

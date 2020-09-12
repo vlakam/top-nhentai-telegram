@@ -1,0 +1,31 @@
+version: '3.0'
+
+services:
+  node:
+    build:
+      context: .
+    env_file: .env
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+#   mongo:
+#     restart: always
+#     image: mongo:4
+#     volumes:
+#       - mongo-volume:/data/db
+#     ports:
+#       - 27017:27017
+#     networks:
+#       - database_nw
+
+# volumes:
+#   mongo-volume:
+#     driver: 'local'
+
+# networks:
+#   database_nw:
+#     driver: bridge
