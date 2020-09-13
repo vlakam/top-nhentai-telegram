@@ -1,4 +1,4 @@
-FROM node:10-alpine AS builder
+FROM node:12-alpine AS builder
 
 ENV NODE_WORKDIR /app
 WORKDIR $NODE_WORKDIR
@@ -9,7 +9,7 @@ RUN rm -rf dist
 RUN npm install
 RUN npm run build
 
-FROM node:10-alpine
+FROM node:12-alpine
 
 ENV NODE_WORKDIR /app
 WORKDIR $NODE_WORKDIR
