@@ -14,14 +14,18 @@ export default class Grabber {
         }
 
         for (const popular of homePage.popular) {
-            const queuedGallery = await GalleryPageModel.findById(popular.id);
-            if (queuedGallery) continue; // this gallery is already queued for uploading
-            const uploadedGallery = await GalleryModel.findById(popular.id);
-            if (uploadedGallery) continue;
+            try {
+                const queuedGallery = await GalleryPageModel.findById(popular.id);
+                if (queuedGallery) continue; // this gallery is already queued for uploading
+                const uploadedGallery = await GalleryModel.findById(popular.id);
+                if (uploadedGallery) continue;
 
-            const newModel = new GalleryPageModel(popular);
-            await newModel.save();
-            console.log(`Saved to queue: ${popular.id}`);
+                const newModel = new GalleryPageModel(popular);
+                await newModel.save();
+                console.log(`Saved to queue: ${popular.id}`);
+            } catch (e) {
+                console.log(`Failed to query base at grab: ${e.toString()}`);
+            }
         }
     }
 }
