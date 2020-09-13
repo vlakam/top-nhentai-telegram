@@ -84,7 +84,7 @@ export default class Uploader {
         const queue = await GalleryPageModel.find({});
         for (const gallery of queue) {
             try {
-                const checkGallery = GalleryModel.findById(gallery.id);
+                const checkGallery = await GalleryModel.findById(gallery.id);
                 if (checkGallery) {
                     console.log(`${gallery.id} already uploaded. Deleting from queue`);
                     await GalleryPageModel.findByIdAndDelete(gallery.id);
