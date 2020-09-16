@@ -22,9 +22,27 @@ const start = async () => {
     await grabber.process();
     await uploader.init();
 
-    scheduleJob('*/15 * * * *', uploader.process.bind(uploader));
-    scheduleJob('*/30 * * * *', publisher.process.bind(publisher));
-    scheduleJob('0 */2 * * *', grabber.process.bind(grabber));
+    scheduleJob('*/15 * * * *', async () => {
+        try {
+            await uploader.process();
+        } catch (e) {
+            console.log(`Uploader failed: ${e.toString()}`);
+        }
+    });
+    scheduleJob('0 */2 * * *', async () => {
+        try {
+            await publisher.process();
+        } catch (e) {
+            console.log(`Publisher failed: ${e.toString()}`);
+        }
+    });
+    scheduleJob('0 */1 * * *', async () => {
+        try {
+            await grabber.process();
+        } catch (e) {
+            console.log(`Grabber failed: ${e.toString()}`);
+        }
+    });
 };
 
 start();
