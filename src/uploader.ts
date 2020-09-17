@@ -101,6 +101,7 @@ export default class Uploader {
                 for (const tag of tags) await TagModel.registerTag(tag);
 
                 const imagesOnTelegraph = [];
+                console.log(`ID: ${gallery.id}. Image count: ${galleryInfo.images.length}`);
                 for (const imageLink of galleryInfo.images) {
                     const uploadedImages = await uploadByUrl(imageLink);
                     console.log(`uploaded: ${imageLink}`);
