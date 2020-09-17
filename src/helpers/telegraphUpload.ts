@@ -34,7 +34,7 @@ export const uploadByBuffer = async (buffer: Buffer, contentType: string) => {
 
     const result = await response.json();
 
-    if (result.error) throw response.error;
+    if (result.error) throw new Error(result.error);
     if (result[0].src) {
         return {
             link: 'https://telegra.ph' + result[0].src,
