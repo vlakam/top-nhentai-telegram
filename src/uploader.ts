@@ -88,17 +88,26 @@ export default class Uploader {
 
     async process() {
         console.log('galleries, time to upload galleries to telegraph and get my ass banned');
-        const queue = await GalleryModel.find({ready: false});
+        const queue = await GalleryModel.find({ ready: false, problematic: { $exists: false } });
         for (const gallery of queue) {
             try {
-                console.log(`ID: ${gallery.id}. Image count: ${gallery.images.length}. Uploaded already: ${gallery.telegraphImages.length}`);
-                for(let i = gallery.telegraphImages.length; i < gallery.images.length; i++) {
-                    const imageLink = gallery.images[i];
-                    const uploadedImages = await uploadByUrl(imageLink);
-                    gallery.telegraphImages.push(uploadedImages.link);
-                    await gallery.save();
+                console.log(
+                    `ID: ${gallery.id}. Image count: ${gallery.images.length}. Uploaded already: ${gallery.telegraphImages.length}`,
+                );
+                for (let i = gallery.telegraphImages.length; i < gallery.images.length; i++) {
+                    try {
+                        const imageLink = gallery.images[i];
+                        const uploadedImages = await uploadByUrl(imageLink);
+                        gallery.telegraphImages.push(uploadedImages.link);
+                        await gallery.save();
 
-                    console.log(`uploaded: ${imageLink}`);
+                        console.log(`uploaded: ${imageLink}`);
+                    } catch (e) {
+                        gallery.problematic = `${(gallery.problematic || '')}\n${i}:${e.toString()}`;
+                        gallery.telegraphImages.push('https://telegra.ph/file/b633c9d6c158eaf9acc6c.jpg');
+                        await gallery.save();
+                        console.log(`${i}:${e.toString()}`);
+                    }
                     await pause(Math.random() * 25000 + 10000);
                 }
 

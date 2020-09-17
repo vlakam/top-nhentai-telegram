@@ -77,6 +77,9 @@ export class Gallery implements IGallery {
     @prop({ required: true, default: false})
     ready!: boolean;
 
+    @prop()
+    problematic?: string;
+
     public get id(): number {
         return this._id;
     }
