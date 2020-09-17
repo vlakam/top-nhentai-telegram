@@ -45,6 +45,7 @@ const generatePageContent = (name: string, images: Array<string>) => {
 export default class Uploader {
     authorName: string = 'Unnamed';
     authorUrl: string = '';
+    working: boolean = true;
     constructor() {}
 
     async init() {
@@ -80,6 +81,9 @@ export default class Uploader {
     }
 
     async process() {
+        if (!this.working) {
+            throw new Error('Uploading failed once. So i dont upload anymore');
+        }
         console.log('galleries, time to upload galleries to telegraph and get my ass banned');
         const queue = await GalleryPageModel.find({});
         for (const gallery of queue) {
@@ -127,6 +131,7 @@ export default class Uploader {
                 break;
             } catch (e) {
                 console.error(`Failed to upload gallery: ${gallery.title} - ${e.toString()}`);
+                this.working = false;
             }
         }
     }
