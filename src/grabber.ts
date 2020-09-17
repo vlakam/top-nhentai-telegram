@@ -1,9 +1,21 @@
 import * as NH from './helpers/nhentai';
 
 import { GalleryModel, GalleryPageModel } from './models';
+import { GRABBER_INTERVAL } from './constants/intervals';
 
 export default class Grabber {
     constructor() {}
+
+    start() {
+        setTimeout(async () => {
+            try {
+                await this.process();
+            } catch (e) {
+                console.log(`Grabber failed: ${e.toString()}. Stack: ${e.stack}`);
+            }
+            this.start();
+        }, GRABBER_INTERVAL);
+    }
 
     async process() {
         console.log('galleries, time to grab some galleries!');

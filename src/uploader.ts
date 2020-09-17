@@ -5,6 +5,7 @@ import * as NH from './helpers/nhentai';
 import { uploadByUrl } from './helpers/telegraphUpload';
 import fetch from 'node-fetch';
 import { pause } from './helpers/pause';
+import { UPLOADER_INTERVAL } from './constants/intervals';
 
 const { TELEGRAPH_TOKEN } = process.env;
 const TELEGRAPH_ROOT = 'https://api.telegra.ph';
@@ -45,7 +46,6 @@ const generatePageContent = (name: string, images: Array<string>) => {
 export default class Uploader {
     authorName: string = 'Unnamed';
     authorUrl: string = '';
-    working: boolean = true;
     constructor() {}
 
     async init() {
@@ -59,8 +59,14 @@ export default class Uploader {
     }
 
     async start() {
-        await this.init();
-        await this.process();
+        setTimeout(async () => {
+            try {
+                await this.process();
+            } catch (e) {
+                console.log(`Uploader failed: ${e.toString()}. Stack: ${e.stack}`);
+            }
+            this.start();
+        }, UPLOADER_INTERVAL);
     }
 
     async requestTelegraph(method: string, data: any) {
@@ -81,9 +87,6 @@ export default class Uploader {
     }
 
     async process() {
-        if (!this.working) {
-            throw new Error('Uploading failed once. So i dont upload anymore');
-        }
         console.log('galleries, time to upload galleries to telegraph and get my ass banned');
         const queue = await GalleryPageModel.find({});
         for (const gallery of queue) {
@@ -106,7 +109,7 @@ export default class Uploader {
                     const uploadedImages = await uploadByUrl(imageLink);
                     console.log(`uploaded: ${imageLink}`);
                     imagesOnTelegraph.push(uploadedImages.link);
-                    await pause(Math.random() * 40000 + 10000);
+                    await pause(Math.random() * 1000);
                 }
                 const content = generatePageContent(galleryInfo.title, imagesOnTelegraph);
                 const telegraphPage = await this.requestTelegraph('createPage', {
@@ -131,8 +134,8 @@ export default class Uploader {
 
                 break;
             } catch (e) {
-                console.error(`Failed to upload gallery: ${gallery.title} - ${e.toString()}`);
-                this.working = false;
+                console.error(`Failed to upload gallery: ${gallery.title} - ${e.toString()}. ${e.stack}`);
+                throw e;
             }
         }
     }

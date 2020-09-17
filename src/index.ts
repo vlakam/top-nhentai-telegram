@@ -2,7 +2,6 @@ import './helpers/env';
 
 import bot from './helpers/bot';
 import { connect } from './models';
-import { scheduleJob } from 'node-schedule';
 import Grabber from './grabber';
 import Uploader from './uploader';
 import { Publisher } from './publisher';
@@ -19,30 +18,33 @@ const start = async () => {
     const uploader = new Uploader();
     const publisher = new Publisher();
 
-    await grabber.process();
+    
     await uploader.init();
+    grabber.start();
+    uploader.start();
+    publisher.start();
 
-    scheduleJob('*/15 * * * *', async () => {
-        try {
-            await uploader.process();
-        } catch (e) {
-            console.log(`Uploader failed: ${e.toString()}`);
-        }
-    });
-    scheduleJob('0 */2 * * *', async () => {
-        try {
-            await publisher.process();
-        } catch (e) {
-            console.log(`Publisher failed: ${e.toString()}`);
-        }
-    });
-    scheduleJob('0 */1 * * *', async () => {
-        try {
-            await grabber.process();
-        } catch (e) {
-            console.log(`Grabber failed: ${e.toString()}`);
-        }
-    });
+    // scheduleJob('*/15 * * * *', async () => {
+    //     try {
+    //         await uploader.process();
+    //     } catch (e) {
+    //         console.log(`Uploader failed: ${e.toString()}`);
+    //     }
+    // });
+    // scheduleJob('0 */2 * * *', async () => {
+    //     try {
+    //         await publisher.process();
+    //     } catch (e) {
+    //         console.log(`Publisher failed: ${e.toString()}`);
+    //     }
+    // });
+    // scheduleJob('0 */1 * * *', async () => {
+    //     try {
+    //         await grabber.process();
+    //     } catch (e) {
+    //         console.log(`Grabber failed: ${e.toString()}`);
+    //     }
+    // });
 };
 
 start();

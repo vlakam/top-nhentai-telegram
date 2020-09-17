@@ -1,8 +1,12 @@
+import { getRandomUA } from "../constants/ua";
+
 const fetch = require('node-fetch');
 const FormData = require('form-data');
 
 export const uploadByUrl = async (url: string) => {
-    const response = await fetch(url);
+    const response = await fetch(url, { headers: {
+        'User-Agent': getRandomUA()
+    }});
     const buffer = await response.buffer();
 
     if (!response.headers.get('content-type')) {
@@ -23,6 +27,9 @@ export const uploadByBuffer = async (buffer: Buffer, contentType: string) => {
     const response = await fetch('https://telegra.ph/upload', {
         method: 'POST',
         body: form,
+        headers: {
+            'User-Agent': getRandomUA()
+        }
     });
 
     const result = await response.json();
