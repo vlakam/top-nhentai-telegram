@@ -99,7 +99,7 @@ export default class Uploader {
                     await gallery.save();
 
                     console.log(`uploaded: ${imageLink}`);
-                    await pause(Math.random() * 1000);
+                    await pause(Math.random() * 25000 + 10000);
                 }
 
                 const content = generatePageContent(gallery.title, gallery.telegraphImages);
