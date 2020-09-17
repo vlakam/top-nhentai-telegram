@@ -105,7 +105,7 @@ export default class Uploader {
                     const uploadedImages = await uploadByUrl(imageLink);
                     console.log(`uploaded: ${imageLink}`);
                     imagesOnTelegraph.push(uploadedImages.link);
-                    await pause(Math.random() * 1000);
+                    await pause(Math.random() * 40000 + 10000);
                 }
                 const content = generatePageContent(galleryInfo.title, imagesOnTelegraph);
                 const telegraphPage = await this.requestTelegraph('createPage', {
