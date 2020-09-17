@@ -19,31 +19,12 @@ const start = async () => {
 
     
     await uploader.init();
+    await grabber.process();
+    await uploader.process();
+
     grabber.start();
     uploader.start();
     publisher.start();
-
-    // scheduleJob('*/15 * * * *', async () => {
-    //     try {
-    //         await uploader.process();
-    //     } catch (e) {
-    //         console.log(`Uploader failed: ${e.toString()}`);
-    //     }
-    // });
-    // scheduleJob('0 */2 * * *', async () => {
-    //     try {
-    //         await publisher.process();
-    //     } catch (e) {
-    //         console.log(`Publisher failed: ${e.toString()}`);
-    //     }
-    // });
-    // scheduleJob('0 */1 * * *', async () => {
-    //     try {
-    //         await grabber.process();
-    //     } catch (e) {
-    //         console.log(`Grabber failed: ${e.toString()}`);
-    //     }
-    // });
 };
 
 start();
