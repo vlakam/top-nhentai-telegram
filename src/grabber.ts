@@ -1,6 +1,6 @@
 import * as NH from './helpers/nhentai';
 
-import { GalleryModel, GalleryPageModel } from './models';
+import { GalleryModel, TagModel } from './models';
 import { GRABBER_INTERVAL } from './constants/intervals';
 
 export default class Grabber {
@@ -27,17 +27,35 @@ export default class Grabber {
 
         for (const popular of homePage.popular) {
             try {
-                const queuedGallery = await GalleryPageModel.findById(popular.id);
-                if (queuedGallery) continue; // this gallery is already queued for uploading
-                const uploadedGallery = await GalleryModel.findById(popular.id);
-                if (uploadedGallery) continue;
-
-                const newModel = new GalleryPageModel(popular);
-                await newModel.save();
-                console.log(`Saved to queue: ${popular.id}`);
+                await this.processId(popular.id, popular.lang);
             } catch (e) {
-                console.log(`Failed to query base at grab: ${e.toString()}`);
+                console.log(`Failed to query base at grab: ${e.toString()}: ${e.stack}`);
+                throw e;
             }
         }
+    }
+
+    async processId(id: number, lang: NH.Lang = NH.Lang.Unknown) {
+        const queuedGallery = await GalleryModel.findById(id);
+        if (queuedGallery) return; // this gallery is already queued for uploading
+
+        const galleryInfo = await NH.getGalleryInfo(id);
+        const tags = galleryInfo.details.has('Tags') ? galleryInfo.details.get('Tags')! : [];
+        await GalleryModel.create({
+            ready: false,
+            lang: lang,
+            _id: id,
+            telegraphImages: [],
+            telegraphLinks: [],
+            tags: tags.map((tag) => tag.code),
+            details: galleryInfo.details,
+            title: galleryInfo.title,
+            nativeTitle: galleryInfo.nativeTitle,
+            images: galleryInfo.images,
+            thumbs: galleryInfo.thumbs,
+        });
+
+        for (const tag of tags) await TagModel.registerTag(tag);
+        console.log(`Saved to queue: ${id}`);
     }
 }

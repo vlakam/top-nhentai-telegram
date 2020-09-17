@@ -14,7 +14,13 @@ const langEmoji: Record<Lang, string> = {
 };
 
 const formatPost = (gallery: Gallery): string => {
-    return `${langEmoji[gallery.lang]} <a href="${gallery.telegraphLink}">${gallery.title}</a>`;
+    if (gallery.telegraphLinks.length === 1) {
+        return `${langEmoji[gallery.lang]} <a href="${gallery.telegraphLinks[0]}">${gallery.title}</a>`;
+    } else {
+        return `${langEmoji[gallery.lang]} ${gallery.title}:\n${gallery.telegraphLinks
+            .map((link, idx) => `${idx}: ${link}`)
+            .join('\n')}`;
+    }
 };
 
 export class Publisher {
@@ -43,7 +49,7 @@ export class Publisher {
         const posts = await ChannelPostModel.find({ channel: channel });
         const galleries: Array<Ref<Gallery>> = posts.map((post) => post.gallery);
         //@ts-ignore
-        const newGalleries = await GalleryModel.find({ _id: { $nin: galleries } });
+        const newGalleries = await GalleryModel.find({ _id: { $nin: galleries }, ready: true });
         for (const gallery of newGalleries) {
             const text = formatPost(gallery);
             const msg = await bot.telegram.sendMessage(channel.id, text, {

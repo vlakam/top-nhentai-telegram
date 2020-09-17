@@ -6,7 +6,6 @@ import Grabber from './grabber';
 import Uploader from './uploader';
 import { Publisher } from './publisher';
 const { MONGO } = process.env;
-bot.launch();
 
 const start = async () => {
     if (!MONGO) throw 'No mongo specified';

@@ -1,4 +1,4 @@
-import { getModelForClass, index, mongoose, prop } from '@typegoose/typegoose';
+import { getModelForClass, index, mongoose, prop, Ref } from '@typegoose/typegoose';
 import { IGallery, IGalleryPage, ITag, Lang } from '../helpers/nhentai';
 
 @index({ _id: 1, name: 1 }, { unique: true })
@@ -13,6 +13,7 @@ export class Tag implements ITag {
         const tag = await TagModel.findById(code);
         if (tag) return tag;
 
+        console.log(`Registering tag: ${code} - ${name}`);
         return await TagModel.create({ name, _id: code, code });
     }
 
@@ -57,18 +58,24 @@ export class Gallery implements IGallery {
     nativeTitle?: string;
     //@prop({ required: true, type: Number })
     details!: Map<string, Tag[]>;
-    @prop({ required: true })
+    @prop({ required: true, type: String })
     thumbs!: string[];
-    @prop({ required: true })
+    @prop({ required: true, type: String })
     images!: string[];
-    @prop({ required: true })
-    telegraphLink!: string;
+    @prop({ required: true, type: String })
+    telegraphLinks!: string[];
+
+    @prop({ required: true, type: String })
+    telegraphImages!: string[];
 
     @prop({ required: true, type: () => String })
     lang!: Lang;
 
     @prop({ required: true, ref: Tag, type: Number })
-    tags!: Tag[];
+    tags!: Array<Ref<Tag>>;
+
+    @prop({ required: true, default: false})
+    ready!: boolean;
 
     public get id(): number {
         return this._id;

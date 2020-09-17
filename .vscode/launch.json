@@ -27,6 +27,18 @@
             "args": [
                 "${workspaceFolder}/src/test.ts"
             ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch migration",
+            "runtimeArgs": [
+                "-r",
+                "ts-node/register"
+            ],
+            "args": [
+                "${workspaceFolder}/src/migrate.ts"
+            ]
         }
     ]
 }

@@ -1,6 +1,6 @@
 import './helpers/env';
 
-import { GalleryModel, GalleryPageModel, TagModel } from './models';
+import { GalleryModel } from './models';
 import * as NH from './helpers/nhentai';
 import { uploadByUrl } from './helpers/telegraphUpload';
 import fetch from 'node-fetch';
@@ -88,50 +88,35 @@ export default class Uploader {
 
     async process() {
         console.log('galleries, time to upload galleries to telegraph and get my ass banned');
-        const queue = await GalleryPageModel.find({});
+        const queue = await GalleryModel.find({ready: false});
         for (const gallery of queue) {
             try {
-                const checkGallery = await GalleryModel.findById(gallery.id);
-                if (checkGallery) {
-                    console.log(`${gallery.id} already uploaded. Deleting from queue`);
-                    await GalleryPageModel.findByIdAndDelete(gallery.id);
-                    continue;
-                }
-
-                const galleryInfo = await NH.getGalleryInfo(gallery.id);
-
-                const tags = galleryInfo.details.has('Tags') ? galleryInfo.details.get('Tags')! : [];
-                for (const tag of tags) await TagModel.registerTag(tag);
-
-                const imagesOnTelegraph = [];
-                console.log(`ID: ${gallery.id}. Image count: ${galleryInfo.images.length}`);
-                for (const imageLink of galleryInfo.images) {
+                console.log(`ID: ${gallery.id}. Image count: ${gallery.images.length}. Uploaded already: ${gallery.telegraphImages.length}`);
+                for(let i = gallery.telegraphImages.length; i < gallery.images.length; i++) {
+                    const imageLink = gallery.images[i];
                     const uploadedImages = await uploadByUrl(imageLink);
+                    gallery.telegraphImages.push(uploadedImages.link);
+                    await gallery.save();
+
                     console.log(`uploaded: ${imageLink}`);
-                    imagesOnTelegraph.push(uploadedImages.link);
-                    await pause(Math.random() * 25000 + 10000);
+                    await pause(Math.random() * 1000);
                 }
-                const content = generatePageContent(galleryInfo.title, imagesOnTelegraph);
+
+                const content = generatePageContent(gallery.title, gallery.telegraphImages);
                 const telegraphPage = await this.requestTelegraph('createPage', {
                     access_token: TELEGRAPH_TOKEN,
-                    title: galleryInfo.title,
+                    title: gallery.title,
                     author_name: this.authorName,
                     author_url: this.authorUrl,
                     content,
                     return_content: true,
                 });
 
-                console.log(`${gallery.title}: ${telegraphPage.url}`);
-                const uploadedGallery = new GalleryModel({
-                    ...galleryInfo,
-                    telegraphLink: telegraphPage.url,
-                    tags: tags.map((tag) => tag.code),
-                    lang: gallery.lang,
-                });
-                await uploadedGallery.save();
-                await GalleryPageModel.findByIdAndDelete(gallery.id);
-                console.log(`Uploaded ${gallery.id}:${gallery.title} to telegraph - OK`);
-
+                console.log(`Uploaded ${gallery.id}:${gallery.title} to telegraph - ${telegraphPage.url}`);
+                gallery.telegraphLinks.push(telegraphPage.url);
+                gallery.ready = true;
+                await gallery.save();
+                console.log(`${gallery.id}:${gallery.title} - is now ready`);
                 break;
             } catch (e) {
                 console.error(`Failed to upload gallery: ${gallery.title} - ${e.toString()}. ${e.stack}`);
