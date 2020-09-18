@@ -1,4 +1,5 @@
 import Telegraf, { Context } from 'telegraf';
+import Grabber from '../grabber';
 import { errorMiddleware } from '../middlewares/errorMiddleware';
 import { ChannelModel, GalleryModel, GalleryPageModel } from '../models';
 import * as NH from './nhentai';
@@ -31,27 +32,7 @@ bot.on('message', async (ctx) => {
             if (!match) continue;
             const [_, idStr] = match;
             const id = parseInt(idStr);
-            const gallery = await NH.getGalleryInfo(id);
-            const langs = gallery.details.get('Languages');
-            let galleryLang = 'UN';
-            if (langs)
-                for (const lang of langs) {
-                    galleryLang = NH.langTags[lang.code] || NH.Lang.Unknown;
-                }
-
-            const queuedGallery = await GalleryPageModel.findById(id);
-            if (queuedGallery) continue; // this gallery is already queued for uploading
-            const uploadedGallery = await GalleryModel.findById(id);
-            if (uploadedGallery) continue;
-
-            const newModel = new GalleryPageModel({
-                id,
-                title: gallery.title,
-                lang: galleryLang,
-                thumb: 'shit',
-            });
-            await newModel.save();
-            console.log(`Saved to queue: ${id}`);
+            await (new Grabber().processId(id));
         }
 
         return;

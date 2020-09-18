@@ -129,7 +129,9 @@ export default class Uploader {
                 break;
             } catch (e) {
                 console.error(`Failed to upload gallery: ${gallery.title} - ${e.toString()}. ${e.stack}`);
-                throw e;
+                gallery.problematic = e.toString();
+                await gallery.save();
+                //throw e;
             }
         }
     }
