@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import cheerio from 'cheerio';
+import { getRandomUA } from '../constants/ua';
 
 const GALLERY_ID_FROM_LINK_REGEX = /\/g\/(\d+)\//;
 const baseURL = 'https://nhentai.net';
@@ -23,6 +24,7 @@ export interface IGallery {
     details: Map<string, Array<ITag>>;
     thumbs: Array<string>;
     images: Array<string>;
+    lang: Lang;
 }
 
 export interface IGalleryPage {
@@ -44,9 +46,13 @@ export const langTags: Record<number, Lang> = {
 };
 
 const NHRequest = async (url: string) => {
-    const response = await fetch(`${baseURL}/${url}`);
-    if (response.status !== 200) throw 'Could not load page';
+    const response = await fetch(`${baseURL}/${url}`, {
+        headers: {
+            'User-Agent': getRandomUA(),
+        },
+    });
 
+    if (response.status !== 200) throw 'Could not load page';
     return response.text();
 };
 
@@ -89,13 +95,13 @@ export const getGalleryInfo = async (id: number): Promise<IGallery> => {
         .toArray()
         .reduce((acc: Map<string, Array<ITag>>, element: CheerioElement) => {
             const $element = $(element);
-            const name = $element.contents().get(0).data.trim().slice(0, -1);
+            const name = $element.contents().get(0).data.trim().slice(0, -1).toLowerCase();
             const features = $element
                 .find('.tags .tag')
                 .toArray()
                 .map((feature) => {
                     const $feature = $(feature);
-                    const name = $feature.find('.name').text();
+                    const name = $feature.find('.name').text().toLowerCase();
                     let code = 0;
                     let klass;
                     if ((klass = $feature.attr('class'))) {
@@ -111,11 +117,19 @@ export const getGalleryInfo = async (id: number): Promise<IGallery> => {
     const thumbs = $('.gallerythumb img')
         .toArray()
         .map((img) => $(img).data('src'));
+
     const images = thumbs.map((thumbUrl) =>
         thumbUrl.replace(/t(\.(jpg|png|gif))/, '$1').replace('t.nhentai', 'i.nhentai'),
     );
 
-    return { id, title, nativeTitle, details, thumbs, images };
+    const lang = details.has('languages')
+        ? details.get('languages')!.reduce((acc, { name, code }) => {
+              if (langTags[code]) return langTags[code];
+              return acc;
+          }, Lang.Unknown)
+        : Lang.Unknown;
+
+    return { id, title, nativeTitle, details, thumbs, images, lang };
 };
 
 export const isGalleryExists = async (galleryID: number): Promise<Boolean> => {
