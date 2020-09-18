@@ -27,7 +27,7 @@ export default class Grabber {
 
         for (const popular of homePage.popular) {
             try {
-                await this.processId(popular.id, popular.lang);
+                await this.processId(popular.id);
             } catch (e) {
                 console.log(`Failed to query base at grab: ${e.toString()}: ${e.stack}`);
                 throw e;
@@ -35,15 +35,15 @@ export default class Grabber {
         }
     }
 
-    async processId(id: number, lang: NH.Lang = NH.Lang.Unknown) {
+    async processId(id: number) {
         const queuedGallery = await GalleryModel.findById(id);
         if (queuedGallery) return; // this gallery is already queued for uploading
 
         const galleryInfo = await NH.getGalleryInfo(id);
-        const tags = galleryInfo.details.has('Tags') ? galleryInfo.details.get('Tags')! : [];
+        const tags = galleryInfo.details.has('tags') ? galleryInfo.details.get('tags')! : [];
         await GalleryModel.create({
             ready: false,
-            lang: lang,
+            lang: galleryInfo.lang,
             _id: id,
             telegraphImages: [],
             telegraphLinks: [],
