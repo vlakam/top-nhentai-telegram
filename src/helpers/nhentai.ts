@@ -25,6 +25,7 @@ export interface IGallery {
     thumbs: Array<string>;
     images: Array<string>;
     lang: Lang;
+    uploadedAt: Date;
 }
 
 export interface IGalleryPage {
@@ -130,7 +131,10 @@ export const getGalleryInfo = async (id: number): Promise<IGallery> => {
           }, Lang.Unknown)
         : Lang.Unknown;
 
-    return { id, title, nativeTitle, details, thumbs, images, lang };
+    const $uploadedAt = $('time');
+    const uploadedAt = $uploadedAt.attr('datetime') ? new Date($uploadedAt.attr('datetime')!) : new Date();
+
+    return { id, title, nativeTitle, details, thumbs, images, lang, uploadedAt };
 };
 
 export const isGalleryExists = async (galleryID: number): Promise<Boolean> => {
