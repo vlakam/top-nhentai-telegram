@@ -18,6 +18,14 @@ export class Tag implements ITag {
         return await TagModel.create({ name, _id: code, code });
     }
 
+    public prettyPrintName() {       
+        return this.name.replace(/ /g, '_');
+    }
+
+    public printHashtag() {
+        return `#${this.prettyPrintName()}`;
+    }
+
     public get code() {
         return this._id;
     }

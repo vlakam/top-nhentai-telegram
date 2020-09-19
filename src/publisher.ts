@@ -18,7 +18,7 @@ const langEmoji: Record<Lang, string> = {
 const formatPost = (gallery: Gallery): string => {
     const formatTags = () => {
         if (isDocumentArray(gallery.tags)) {
-            return `Tags: ${gallery.tags.map((tag: Tag) => `#${tag.name}`).join(' ')}`;
+            return `Tags: ${gallery.tags.map((tag: Tag) => tag.printHashtag()).join(' ')}`;
         } else {
             throw 'Not populated tags';
         }
