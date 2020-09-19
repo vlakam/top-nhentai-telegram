@@ -43,6 +43,7 @@ export const langTags: Record<number, Lang> = {
     12227: Lang.English,
     90412: Lang.Japanese,
     29963: Lang.Chinese,
+    6346: Lang.Japanese,
 };
 
 const NHRequest = async (url: string) => {
