@@ -2,6 +2,7 @@ import * as NH from './helpers/nhentai';
 
 import { GalleryModel, TagModel } from './models';
 import { GRABBER_INTERVAL } from './constants/intervals';
+import logger from './helpers/logger';
 
 export default class Grabber {
     constructor() {}
@@ -11,17 +12,17 @@ export default class Grabber {
             try {
                 await this.process();
             } catch (e) {
-                console.log(`Grabber failed: ${e.toString()}. Stack: ${e.stack}`);
+                logger.error(`Grabber failed: ${e.toString()}. Stack: ${e.stack}`);
             }
             this.start();
         }, GRABBER_INTERVAL);
     }
 
     async process() {
-        console.log('galleries, time to grab some galleries!');
+        logger.info('galleries, time to grab some galleries!');
         const homePage = await NH.getHomepage();
         if (!homePage.popular) {
-            console.log('No populars this time ;(');
+            logger.info('No populars this time ;(');
             return;
         }
 
@@ -29,7 +30,7 @@ export default class Grabber {
             try {
                 await this.processId(popular.id);
             } catch (e) {
-                console.log(`Failed to query base at grab: ${e.toString()}: ${e.stack}`);
+                logger.error(`Failed to query base at grab: ${e.toString()}: ${e.stack}`);
                 throw e;
             }
         }
@@ -56,6 +57,6 @@ export default class Grabber {
         });
 
         for (const tag of tags) await TagModel.registerTag(tag);
-        console.log(`Saved to queue: ${id}`);
+        logger.info(`Saved to queue: ${id}`);
     }
 }

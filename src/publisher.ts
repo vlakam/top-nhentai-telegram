@@ -6,6 +6,7 @@ import { ChannelPostModel } from './models/channelPost';
 import { isDocumentArray, Ref } from '@typegoose/typegoose';
 import { PUBLISHER_INTERVAL } from './constants/intervals';
 import * as schedule from 'node-schedule';
+import logger from './helpers/logger';
 
 const langEmoji: Record<Lang, string> = {
     [Lang.English]: '🇬🇧',
@@ -38,7 +39,7 @@ export class Publisher {
     constructor() {}
 
     async process() {
-        console.log('Time to post galleries');
+        logger.info('Time to post galleries');
         const channels = await ChannelModel.find({ posting: true });
         for (const channel of channels) {
             await this.processChannel(channel);
@@ -48,11 +49,11 @@ export class Publisher {
     start() {
         const job = schedule.scheduleJob(PUBLISHER_INTERVAL, async () => {
             job.cancel();
-            
+
             try {
                 await this.process();
             } catch (e) {
-                console.log(`Publisher failed: ${e.toString()}. Stack: ${e.stack}`);
+                logger.info(`Publisher failed: ${e.toString()}. Stack: ${e.stack}`);
             } finally {
                 job.reschedule(PUBLISHER_INTERVAL);
             }
@@ -71,7 +72,7 @@ export class Publisher {
                 parse_mode: 'HTML',
             });
             await ChannelPostModel.create({ channel, gallery, messageId: msg.message_id });
-            console.log(`Posted ${gallery.title} to ${channel.title}`);
+            logger.info(`Posted ${gallery.title} to ${channel.title}`);
             break;
         }
     }

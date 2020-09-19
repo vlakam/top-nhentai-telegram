@@ -9,7 +9,9 @@ const { MONGO } = process.env;
 (async () => {
     if (!MONGO) throw 'No mongo specified';
     await connect(MONGO);
-    const uploader = new Uploader();
-    await uploader.init();
-    await uploader.process();
+    // const uploader = new Uploader();
+    // await uploader.init();
+    // await uploader.process();
+    const publisher = new Publisher();
+    await publisher.process();
 })();

@@ -1,4 +1,5 @@
 import { getModelForClass, index, mongoose, prop, Ref } from '@typegoose/typegoose';
+import logger from '../helpers/logger';
 import { IGallery, IGalleryPage, ITag, Lang } from '../helpers/nhentai';
 
 @index({ _id: 1, name: 1 }, { unique: true })
@@ -13,7 +14,7 @@ export class Tag implements ITag {
         const tag = await TagModel.findById(code);
         if (tag) return tag;
 
-        console.log(`Registering tag: ${code} - ${name}`);
+        logger.info(`Registering tag: ${code} - ${name}`);
         return await TagModel.create({ name, _id: code, code });
     }
 

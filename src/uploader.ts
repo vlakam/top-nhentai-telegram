@@ -1,11 +1,10 @@
-import './helpers/env';
-
 import { GalleryModel } from './models';
 import * as NH from './helpers/nhentai';
 import { uploadByUrl } from './helpers/telegraphUpload';
 import fetch from 'node-fetch';
 import { pause } from './helpers/pause';
 import { UPLOADER_INTERVAL } from './constants/intervals';
+import logger from './helpers/logger';
 
 const { TELEGRAPH_TOKEN } = process.env;
 const TELEGRAPH_ROOT = 'https://api.telegra.ph';
@@ -55,7 +54,7 @@ export default class Uploader {
 
         this.authorName = data.author_name || this.authorName;
         this.authorUrl = data.author_url || this.authorUrl;
-        console.log(`Uploader init: ${this.authorName}(${this.authorUrl})`);
+        logger.info(`Uploader init: ${this.authorName}(${this.authorUrl})`);
     }
 
     async start() {
@@ -63,7 +62,7 @@ export default class Uploader {
             try {
                 await this.process();
             } catch (e) {
-                console.log(`Uploader failed: ${e.toString()}. Stack: ${e.stack}`);
+                logger.info(`Uploader failed: ${e.toString()}. Stack: ${e.stack}`);
             }
             this.start();
         }, UPLOADER_INTERVAL);
@@ -87,11 +86,11 @@ export default class Uploader {
     }
 
     async process() {
-        console.log('galleries, time to upload galleries to telegraph and get my ass banned');
+        logger.info('galleries, time to upload galleries to telegraph and get my ass banned');
         const queue = await GalleryModel.find({ ready: false, problematic: { $exists: false } });
         for (const gallery of queue) {
             try {
-                console.log(
+                logger.info(
                     `ID: ${gallery.id}. Image count: ${gallery.images.length}. Uploaded already: ${gallery.telegraphImages.length}`,
                 );
                 for (let i = gallery.telegraphImages.length; i < gallery.images.length; i++) {
@@ -101,12 +100,12 @@ export default class Uploader {
                         gallery.telegraphImages.push(uploadedImages.link);
                         await gallery.save();
 
-                        console.log(`uploaded: ${imageLink}`);
+                        logger.info(`uploaded: ${imageLink}`);
                     } catch (e) {
                         gallery.problematic = `${(gallery.problematic || '')}\n${i}:${e.toString()}`;
                         gallery.telegraphImages.push('https://telegra.ph/file/b633c9d6c158eaf9acc6c.jpg');
                         await gallery.save();
-                        console.log(`${i}:${e.toString()}`);
+                        logger.info(`${i}:${e.toString()}`);
                     }
                     await pause(Math.random() * 25000 + 10000);
                 }
@@ -121,14 +120,14 @@ export default class Uploader {
                     return_content: true,
                 });
 
-                console.log(`Uploaded ${gallery.id}:${gallery.title} to telegraph - ${telegraphPage.url}`);
+                logger.info(`Uploaded ${gallery.id}:${gallery.title} to telegraph - ${telegraphPage.url}`);
                 gallery.telegraphLinks.push(telegraphPage.url);
                 gallery.ready = true;
                 await gallery.save();
-                console.log(`${gallery.id}:${gallery.title} - is now ready`);
+                logger.info(`${gallery.id}:${gallery.title} - is now ready`);
                 break;
             } catch (e) {
-                console.error(`Failed to upload gallery: ${gallery.title} - ${e.toString()}. ${e.stack}`);
+                logger.error(`Failed to upload gallery: ${gallery.title} - ${e.toString()}. ${e.stack}`);
                 gallery.problematic = e.toString();
                 await gallery.save();
                 //throw e;

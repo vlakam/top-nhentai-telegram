@@ -1,11 +1,12 @@
-import Telegraf, { Context } from 'telegraf';
+import Telegraf from 'telegraf';
 import Grabber from '../grabber';
 import { errorMiddleware } from '../middlewares/errorMiddleware';
-import { ChannelModel, GalleryModel, GalleryPageModel } from '../models';
-import * as NH from './nhentai';
+import { ChannelModel} from '../models';
+import logger from './logger';
+
 const { TELEGRAM_TOKEN, OWNER_ID } = process.env;
 if (!TELEGRAM_TOKEN) {
-    console.log('No telegram token specified');
+    logger.error('No telegram token specified');
     process.exit(1);
 }
 
@@ -14,7 +15,7 @@ const bot = new Telegraf(TELEGRAM_TOKEN);
 bot.use(errorMiddleware);
 
 bot.on('channel_post', async (ctx) => {
-    console.log('channel_post');
+    logger.info('channel_post');
     const { id, title } = ctx.channelPost!.chat;
     await ChannelModel.registerChannel({ id, title: title || 'unknown' });
 });

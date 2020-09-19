@@ -5,6 +5,7 @@ import { connect } from './models';
 import Grabber from './grabber';
 import Uploader from './uploader';
 import { Publisher } from './publisher';
+import logger from './helpers/logger';
 const { MONGO } = process.env;
 
 const start = async () => {
@@ -12,6 +13,7 @@ const start = async () => {
 
     await connect(MONGO);
     await bot.launch();
+    logger.info('launched');
 
     const grabber = new Grabber();
     const uploader = new Uploader();

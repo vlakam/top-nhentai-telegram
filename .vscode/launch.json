@@ -8,6 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Bot",
+            "outputCapture": "std",
             "runtimeArgs": [
                 "-r",
                 "ts-node/register"
@@ -20,6 +21,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Dummy Run",
+            "outputCapture": "std",
             "runtimeArgs": [
                 "-r",
                 "ts-node/register"
@@ -32,6 +34,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch migration",
+            "outputCapture": "std",
             "runtimeArgs": [
                 "-r",
                 "ts-node/register"
