@@ -19,7 +19,7 @@ export class Tag implements ITag {
     }
 
     public prettyPrintName() {       
-        return this.name.replace(/ /g, '_');
+        return this.name.replace(/ /g, '_').replace(/-/g, '_');
     }
 
     public printHashtag() {
