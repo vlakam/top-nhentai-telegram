@@ -1,7 +1,8 @@
 import Telegraf from 'telegraf';
-import Grabber from '../grabber';
+import { setupAddCommand } from '../commands/add';
+import { setupTagsCommand } from '../commands/tags';
 import { errorMiddleware } from '../middlewares/errorMiddleware';
-import { ChannelModel} from '../models';
+import { ChannelModel } from '../models';
 import logger from './logger';
 
 const { TELEGRAM_TOKEN, OWNER_ID } = process.env;
@@ -10,9 +11,10 @@ if (!TELEGRAM_TOKEN) {
     process.exit(1);
 }
 
-const owner = parseInt(OWNER_ID || '0');
 const bot = new Telegraf(TELEGRAM_TOKEN);
 bot.use(errorMiddleware);
+setupTagsCommand(bot);
+setupAddCommand(bot);
 
 bot.on('channel_post', async (ctx) => {
     logger.info('channel_post');
@@ -21,23 +23,6 @@ bot.on('channel_post', async (ctx) => {
 });
 
 bot.on('message', async (ctx) => {
-    if (ctx.from && ctx.from.id == owner && ctx.message && ctx.message.entities && ctx.message.text) {
-        const urls = ctx.message.entities
-            .filter(({ type }) => type === 'url')
-            .slice(0, 1)
-            .map(({ offset, length }) => ctx.message!.text!.substring(offset, offset + length))
-            .filter((url) => url.includes('nhentai'));
-
-        for (const url of urls) {
-            const match = url.match(/g\/([0-9]+)\//);
-            if (!match) continue;
-            const [_, idStr] = match;
-            const id = parseInt(idStr);
-            await (new Grabber().processId(id));
-        }
-
-        return;
-    }
     await ctx.reply(`I dont work in chats at this moment. Please add me to channel`);
 });
 
