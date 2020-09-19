@@ -62,9 +62,11 @@ export class Publisher {
 
     async processChannel(channel: Channel) {
         const posts = await ChannelPostModel.find({ channel: channel });
-        const galleries: Array<Ref<Gallery>> = posts.map((post) => post.gallery);
-        //@ts-ignore
-        const newGalleries = await GalleryModel.find({ _id: { $nin: galleries }, ready: true });
+        const galleries: Array<number> = posts.map((post) => Number(post.gallery));
+        const newGalleries = await GalleryModel.find({ _id: { $nin: galleries }, ready: true }).sort({
+            uploadedAt: 'asc',
+        });
+
         for (const gallery of newGalleries) {
             await gallery.populate('tags').execPopulate();
             const text = formatPost(gallery);
