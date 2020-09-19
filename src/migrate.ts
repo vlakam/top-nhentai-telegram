@@ -1,7 +1,8 @@
 import './helpers/env';
 import { mongoose } from '@typegoose/typegoose';
 import Grabber from './grabber';
-import { GalleryPage, GalleryPageModel } from './models';
+import { GalleryModel, GalleryPage, GalleryPageModel } from './models';
+import * as NH from './helpers/nhentai';
 
 const { MONGO } = process.env;
 const migrate_gallery_multiple_links = async () => {
@@ -46,9 +47,28 @@ const migrate_queue = async () => {
     }
 };
 
+const migrate_fix_langs = async () => {
+    await mongoose.connect(MONGO!, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false,
+        useCreateIndex: true,
+    });
+
+    const galleries = await GalleryModel.find({});
+    for(const gallery of galleries) {
+        const { lang: trueLang } = await NH.getGalleryInfo(gallery.id);
+        console.log(gallery.id, trueLang);
+        gallery.lang = trueLang;
+
+        await gallery.save();
+    }
+}
+
 const migrations = async () => {
     await migrate_gallery_multiple_links();
     await migrate_queue();
+    await migrate_fix_langs();
 }
 
 migrations();
