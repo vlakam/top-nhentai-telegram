@@ -1,9 +1,9 @@
 import './helpers/env';
 import bot from './helpers/bot';
 import { Lang } from './helpers/nhentai';
-import { Channel, ChannelModel, Gallery, GalleryModel } from './models';
+import { Channel, ChannelModel, Gallery, GalleryModel, Tag } from './models';
 import { ChannelPostModel } from './models/channelPost';
-import { Ref } from '@typegoose/typegoose';
+import { isDocumentArray, Ref } from '@typegoose/typegoose';
 import { PUBLISHER_INTERVAL } from './constants/intervals';
 
 const langEmoji: Record<Lang, string> = {
@@ -14,13 +14,23 @@ const langEmoji: Record<Lang, string> = {
 };
 
 const formatPost = (gallery: Gallery): string => {
-    if (gallery.telegraphLinks.length === 1) {
-        return `${langEmoji[gallery.lang]} <a href="${gallery.telegraphLinks[0]}">${gallery.title}</a>`;
-    } else {
-        return `${langEmoji[gallery.lang]} ${gallery.title}:\n${gallery.telegraphLinks
-            .map((link, idx) => `${idx}: ${link}`)
-            .join('\n')}`;
-    }
+    const formatTags = () => {
+        if (isDocumentArray(gallery.tags)) {
+            return `Tags: ${gallery.tags.map((tag: Tag) => `#${tag.name}`).join(' ')}`;
+        } else {
+            throw 'Not populated tags';
+        }
+    };
+
+    const formatLink = () => {
+        const { telegraphLinks, title } = gallery;
+        if (telegraphLinks.length === 1) return `<a href="${telegraphLinks[0]}">${title}</a>`;
+        else {
+            return `${title}:\n${telegraphLinks.map((link, idx) => `<a href="${link}">Part ${idx}</a>`).join('\n')}`;
+        }
+    };
+
+    return `${langEmoji[gallery.lang]} ${formatLink()}\n${formatTags()}`;
 };
 
 export class Publisher {
@@ -51,6 +61,7 @@ export class Publisher {
         //@ts-ignore
         const newGalleries = await GalleryModel.find({ _id: { $nin: galleries }, ready: true });
         for (const gallery of newGalleries) {
+            await gallery.populate('tags');
             const text = formatPost(gallery);
             const msg = await bot.telegram.sendMessage(channel.id, text, {
                 parse_mode: 'HTML',
