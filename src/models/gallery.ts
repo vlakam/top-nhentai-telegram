@@ -89,6 +89,12 @@ export class Gallery implements IGallery {
     @prop()
     problematic?: string;
 
+    @prop({ required: true, default: new Date() })
+    createdAt!: Date;
+
+    @prop({ required: true })
+    uploadedAt!: Date;
+
     public get id(): number {
         return this._id;
     }

@@ -65,10 +65,31 @@ const migrate_fix_langs = async () => {
     }
 }
 
+
+const migrate_add_timestamps = async () => {
+    await mongoose.connect(MONGO!, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false,
+        useCreateIndex: true,
+    });
+
+    const galleries = await GalleryModel.find({});
+    for(const gallery of galleries) {
+        const { uploadedAt } = await NH.getGalleryInfo(gallery.id);
+        gallery.createdAt = gallery.createdAt || new Date();
+        gallery.uploadedAt = uploadedAt;
+        console.log(gallery.id, gallery.title, uploadedAt);
+
+        await gallery.save();
+    }
+}
+
 const migrations = async () => {
-    await migrate_gallery_multiple_links();
-    await migrate_queue();
-    await migrate_fix_langs();
+    // await migrate_gallery_multiple_links();
+    // await migrate_queue();
+    // await migrate_fix_langs();
+    await migrate_add_timestamps();
 }
 
 migrations();

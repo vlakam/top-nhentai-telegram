@@ -54,6 +54,8 @@ export default class Grabber {
             nativeTitle: galleryInfo.nativeTitle,
             images: galleryInfo.images,
             thumbs: galleryInfo.thumbs,
+            uploadedAt: galleryInfo.uploadedAt,
+            createdAt: new Date(),
         });
 
         for (const tag of tags) await TagModel.registerTag(tag);
