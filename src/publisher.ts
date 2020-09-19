@@ -61,7 +61,7 @@ export class Publisher {
         //@ts-ignore
         const newGalleries = await GalleryModel.find({ _id: { $nin: galleries }, ready: true });
         for (const gallery of newGalleries) {
-            await gallery.populate('tags');
+            await gallery.populate('tags').execPopulate();
             const text = formatPost(gallery);
             const msg = await bot.telegram.sendMessage(channel.id, text, {
                 parse_mode: 'HTML',
