@@ -5,6 +5,7 @@ import { Channel, ChannelModel, Gallery, GalleryModel, Tag } from './models';
 import { ChannelPostModel } from './models/channelPost';
 import { isDocumentArray, Ref } from '@typegoose/typegoose';
 import { PUBLISHER_INTERVAL } from './constants/intervals';
+import * as schedule from 'node-schedule';
 
 const langEmoji: Record<Lang, string> = {
     [Lang.English]: '🇬🇧',
@@ -45,14 +46,17 @@ export class Publisher {
     }
 
     start() {
-        setTimeout(async () => {
+        const job = schedule.scheduleJob(PUBLISHER_INTERVAL, async () => {
+            job.cancel();
+            
             try {
                 await this.process();
             } catch (e) {
                 console.log(`Publisher failed: ${e.toString()}. Stack: ${e.stack}`);
+            } finally {
+                job.reschedule(PUBLISHER_INTERVAL);
             }
-            this.start();
-        }, PUBLISHER_INTERVAL);
+        });
     }
 
     async processChannel(channel: Channel) {
