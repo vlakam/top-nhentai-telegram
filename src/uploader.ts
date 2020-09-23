@@ -5,6 +5,7 @@ import fetch from 'node-fetch';
 import { pause } from './helpers/pause';
 import { UPLOADER_INTERVAL } from './constants/intervals';
 import logger from './helpers/logger';
+import { chunkArray } from './helpers/chunkArray';
 
 const { TELEGRAPH_TOKEN } = process.env;
 const TELEGRAPH_ROOT = 'https://api.telegra.ph';
@@ -110,18 +111,23 @@ export default class Uploader {
                     await pause(Math.random() * 25000 + 10000);
                 }
 
-                const content = generatePageContent(gallery.title, gallery.telegraphImages);
-                const telegraphPage = await this.requestTelegraph('createPage', {
-                    access_token: TELEGRAPH_TOKEN,
-                    title: gallery.title,
-                    author_name: this.authorName,
-                    author_url: this.authorUrl,
-                    content,
-                    return_content: true,
-                });
+                const telegraphPages = [];
+                for (const part of chunkArray(gallery.telegraphImages, 250)) {
+                    const content = generatePageContent(gallery.title, part);
+                    const telegraphPage = await this.requestTelegraph('createPage', {
+                        access_token: TELEGRAPH_TOKEN,
+                        title: gallery.title,
+                        author_name: this.authorName,
+                        author_url: this.authorUrl,
+                        content,
+                        return_content: true,
+                    });
 
-                logger.info(`Uploaded ${gallery.id}:${gallery.title} to telegraph - ${telegraphPage.url}`);
-                gallery.telegraphLinks.push(telegraphPage.url);
+                    telegraphPages.push(telegraphPage.url);
+                }                
+
+                logger.info(`Uploaded ${gallery.id}:${gallery.title} to telegraph - ${telegraphPages.join(' ')}`);
+                gallery.telegraphLinks = telegraphPages;
                 gallery.ready = true;
                 await gallery.save();
                 logger.info(`${gallery.id}:${gallery.title} - is now ready`);
