@@ -68,7 +68,7 @@ export class Publisher {
         });
 
         for (const gallery of newGalleries) {
-            await gallery.populate('tags').execPopulate();
+            await gallery.populate({ path: 'tags', options: { sort: { name: 1 } } }).execPopulate();
             const text = formatPost(gallery);
             const msg = await bot.telegram.sendMessage(channel.id, text, {
                 parse_mode: 'HTML',
