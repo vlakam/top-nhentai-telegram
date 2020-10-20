@@ -1,5 +1,4 @@
 import { GalleryModel } from './models';
-import * as NH from './helpers/nhentai';
 import { uploadByUrl } from './helpers/telegraphUpload';
 import fetch from 'node-fetch';
 import { pause } from './helpers/pause';
