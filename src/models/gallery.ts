@@ -90,10 +90,13 @@ export class Gallery implements IGallery {
     problematic?: string;
 
     @prop({ required: true, default: new Date() })
-    createdAt!: Date;
+    createdAt?: Date;
 
     @prop({ required: true })
     uploadedAt!: Date;
+
+    @prop({ default: 'Trending' })
+    section?: string;
 
     public get id(): number {
         return this._id;

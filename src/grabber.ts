@@ -1,8 +1,9 @@
 import * as NH from './helpers/nhentai';
 
-import { GalleryModel, TagModel } from './models';
+import { Gallery, GalleryModel, TagModel } from './models';
 import { GRABBER_INTERVAL } from './constants/intervals';
 import logger from './helpers/logger';
+import { DocumentType } from '@typegoose/typegoose';
 
 export default class Grabber {
     constructor() {}
@@ -36,13 +37,13 @@ export default class Grabber {
         }
     }
 
-    async processId(id: number) {
+    async processId(id: number, section?: string): Promise<DocumentType<Gallery>> {
         const queuedGallery = await GalleryModel.findById(id);
-        if (queuedGallery) return; // this gallery is already queued for uploading
+        if (queuedGallery) return queuedGallery; // this gallery is already queued for uploading
 
         const galleryInfo = await NH.getGalleryInfo(id);
         const tags = galleryInfo.details.has('tags') ? galleryInfo.details.get('tags')! : [];
-        await GalleryModel.create({
+        const gallery = await GalleryModel.create({
             ready: false,
             lang: galleryInfo.lang,
             _id: id,
@@ -55,10 +56,13 @@ export default class Grabber {
             images: galleryInfo.images,
             thumbs: galleryInfo.thumbs,
             uploadedAt: galleryInfo.uploadedAt,
+            section: section,
             createdAt: new Date(),
         });
 
         for (const tag of tags) await TagModel.registerTag(tag);
         logger.info(`Saved to queue: ${id}`);
+
+        return gallery;
     }
 }

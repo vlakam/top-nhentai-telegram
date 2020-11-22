@@ -16,7 +16,7 @@ export const setupAddCommand = (bot: Telegraf<Context>) => {
                 if (!match) continue;
                 const [_, idStr] = match;
                 const id = parseInt(idStr);
-                await new Grabber().processId(id);
+                const gallery = await new Grabber().processId(id, 'Custom');
             }
         }
     });

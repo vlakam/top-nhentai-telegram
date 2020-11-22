@@ -11,6 +11,15 @@ export class ChannelPost {
 
     @prop({ required: true })
     messageId!: number;
+
+    @prop({ default: [], type: Number })
+    liked?: number[];
+
+    @prop({ default: [], type: Number })
+    disliked?: number[];
+
+    @prop({ default: new Date(), type: Date })
+    createdAt?: Date;
 }
 
 export const ChannelPostModel = getModelForClass(ChannelPost);
