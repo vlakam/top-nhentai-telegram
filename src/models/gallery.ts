@@ -98,6 +98,9 @@ export class Gallery implements IGallery {
     @prop({ default: 'Trending' })
     section?: string;
 
+    @prop()
+    cannotUpload?: boolean;
+
     public get id(): number {
         return this._id;
     }

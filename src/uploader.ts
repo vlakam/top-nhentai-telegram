@@ -87,12 +87,16 @@ export default class Uploader {
 
     async process() {
         logger.info('galleries, time to upload galleries to telegraph and get my ass banned');
-        const queue = await GalleryModel.find({ ready: false, problematic: { $exists: false } });
+        const queue = await GalleryModel.find({ ready: false, cannotUpload: { $exists: false } });
+
+        galleryloop:
         for (const gallery of queue) {
             try {
                 logger.info(
                     `ID: ${gallery.id}. Image count: ${gallery.images.length}. Uploaded already: ${gallery.telegraphImages.length}`,
                 );
+                if (gallery.problematic) logger.info(`Had problems with this gallery: ${gallery.problematic}`);
+                
                 for (let i = gallery.telegraphImages.length; i < gallery.images.length; i++) {
                     try {
                         const imageLink = gallery.images[i];
@@ -102,10 +106,16 @@ export default class Uploader {
 
                         logger.info(`uploaded: ${imageLink}`);
                     } catch (e) {
-                        gallery.problematic = `${(gallery.problematic || '')}\n${i}:${e.toString()}`;
-                        gallery.telegraphImages.push('https://telegra.ph/file/b633c9d6c158eaf9acc6c.jpg');
+                        if (gallery.problematic) {
+                            logger.info(`Failed to upload gallery ${gallery.id} twice. Ignoring now.`);
+                            gallery.cannotUpload = true;
+                        } else {
+                            gallery.problematic = `${(gallery.problematic || '')}\n${i}:${e.toString()}`;
+                        }
+
                         await gallery.save();
                         logger.info(`${i}:${e.toString()}`);
+                        continue galleryloop;
                     }
                     await pause(Math.random() * 25000 + 10000);
                 }
