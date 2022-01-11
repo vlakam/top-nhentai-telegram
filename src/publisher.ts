@@ -16,6 +16,15 @@ const langEmoji: Record<Lang, string> = {
     [Lang.Unknown]: '🏳️',
 };
 
+function escapeHtml(unsafe: string) {
+    return unsafe
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 const formatPost = (gallery: Gallery): string => {
     const formatTags = () => {
         if (isDocumentArray(gallery.tags)) {
@@ -27,9 +36,10 @@ const formatPost = (gallery: Gallery): string => {
 
     const formatLink = () => {
         const { telegraphLinks, title } = gallery;
-        if (telegraphLinks.length === 1) return `<a href="${telegraphLinks[0]}">${title}</a>`;
+        const safeTitle = escapeHtml(title);
+        if (telegraphLinks.length === 1) return `<a href="${telegraphLinks[0]}">${safeTitle}</a>`;
         else {
-            return `${title}:\n${telegraphLinks.map((link, idx) => `<a href="${link}">Part ${idx}</a>`).join('\n')}`;
+            return `${safeTitle}:\n${telegraphLinks.map((link, idx) => `<a href="${link}">Part ${idx}</a>`).join('\n')}`;
         }
     };
 
@@ -71,6 +81,7 @@ export class Publisher {
         for (const gallery of newGalleries) {
             await gallery.populate({ path: 'tags', options: { sort: { name: 1 } } }).execPopulate();
             const text = formatPost(gallery);
+            console.log(`Publishing gallery ${gallery.id} to channel ${channel.title}`);
             const msg = await bot.telegram.sendMessage(
                 channel.id,
                 text,
@@ -82,13 +93,21 @@ export class Publisher {
                 }),
             );
             const post = await ChannelPostModel.create({ channel, gallery, messageId: msg.message_id });
-            
+
             await bot.telegram.editMessageReplyMarkup(
                 channel.id,
                 msg.message_id,
                 undefined,
                 // @ts-ignore
-                Markup.inlineKeyboard([[Markup.callbackButton('0 👍', `like_${post._id}`), Markup.callbackButton('0 👎', `dislike_${post._id}`)]], {}),
+                Markup.inlineKeyboard(
+                    [
+                        [
+                            Markup.callbackButton('0 👍', `like_${post._id}`),
+                            Markup.callbackButton('0 👎', `dislike_${post._id}`),
+                        ],
+                    ],
+                    {},
+                ),
             );
             logger.info(`Posted ${gallery.title} to ${channel.title}`);
             break;
