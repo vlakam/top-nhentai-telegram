@@ -85,11 +85,42 @@ const migrate_add_timestamps = async () => {
     }
 }
 
+const migrate_fix_images_url = async () => {
+    await mongoose.connect(MONGO!, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false,
+        useCreateIndex: true,
+    });
+
+    let galleries = await GalleryModel.find({cannotUpload: { $exists: true }});
+
+    for(const gallery of galleries) {
+        const { images } = await NH.getGalleryInfo(gallery.id);
+        gallery.images = images;
+        gallery.cannotUpload = undefined;
+        console.log(gallery.id, gallery.title, images);
+        await gallery.save();
+    }
+
+    galleries = await GalleryModel.find({problematic: { $exists: true }});
+
+    for(const gallery of galleries) {
+        const { images } = await NH.getGalleryInfo(gallery.id);
+        gallery.images = images;
+        gallery.problematic = undefined;
+        console.log(gallery.id, gallery.title, images);
+        await gallery.save();
+    }
+}
+
+
 const migrations = async () => {
     // await migrate_gallery_multiple_links();
     // await migrate_queue();
     // await migrate_fix_langs();
-    await migrate_add_timestamps();
+    //await migrate_add_timestamps();
+    await migrate_fix_images_url();
 }
 
 migrations();

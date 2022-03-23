@@ -121,7 +121,7 @@ export const getGalleryInfo = async (id: number): Promise<IGallery> => {
         .map((img) => $(img).data('src'));
 
     const images = thumbs.map((thumbUrl) =>
-        thumbUrl.replace(/t(\.(jpg|png|gif))/, '$1').replace('t.nhentai', 'i.nhentai'),
+        thumbUrl.replace(/t(\.(jpg|png|gif))/, '$1').replace(/t\d?.nhentai/, 'i.nhentai'),
     );
 
     const lang = details.has('languages')
